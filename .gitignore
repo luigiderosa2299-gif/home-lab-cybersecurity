@@ -1,0 +1,9 @@
+# Ambienti virtuali / segreti — non versionare
+.env
+*.pem
+*.key
+id_rsa*
+*.ovpn
+
+# OS
+.DS_Store
