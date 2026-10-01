@@ -9,10 +9,13 @@ Lab virtualizzato su un singolo host macOS (Apple Silicon), con macchine virtual
 ## 🛠 Tecnologie e Strumenti
 - **Hypervisor**: UTM (QEMU/HVF) su macOS Apple Silicon (arm64)
 - **Attack machine**: Kali Linux Rolling (arm64), accesso SSH con autenticazione a chiave
-- **Target vulnerabile**: [DVWA](https://github.com/digininja/DVWA) (Damn Vulnerable Web Application), containerizzato con Docker
+- **Target vulnerabili** (set ispirato a OWASP Broken Web Applications — OWASP BWA):
+  - [DVWA](https://github.com/digininja/DVWA) (Damn Vulnerable Web Application) — porta 8080
+  - [WebGoat](https://owasp.org/www-project-webgoat/) — piattaforma didattica OWASP con lezioni guidate passo-passo — porta 8081
+  - [Mutillidae II](https://github.com/webpwnized/mutillidae) — copertura quasi completa OWASP Top 10, livelli di difficoltà regolabili — porta 8082
 - **Networking**: bridge su interfaccia fisica (vmnet-bridged), IP assegnati via DHCP sulla LAN domestica
 - **Tool di analisi**: Nmap, cURL
-- **Container runtime**: Docker (`docker.io` da repository Kali)
+- **Container runtime**: Docker (`docker.io` da repository Kali) + `qemu-user-static`/`binfmt-support` per emulare immagini amd64 su host arm64
 
 ## 🏗 Architettura del Lab
 
@@ -27,10 +30,18 @@ Lab virtualizzato su un singolo host macOS (Apple Silicon), con macchine virtual
 │  └──────────────┘        │                 │ │
 │                           │  ┌───────────┐  │ │
 │                           │  │  Docker   │  │ │
-│                           │  │  ┌─────┐  │  │ │
-│                           │  │  │DVWA │  │  │ │
-│                           │  │  │:8080│  │  │ │
-│                           │  │  └─────┘  │  │ │
+│                           │  │ ┌───────┐ │  │ │
+│                           │  │ │ DVWA  │ │  │ │
+│                           │  │ │ :8080 │ │  │ │
+│                           │  │ └───────┘ │  │ │
+│                           │  │ ┌───────┐ │  │ │
+│                           │  │ │WebGoat│ │  │ │
+│                           │  │ │ :8081 │ │  │ │
+│                           │  │ └───────┘ │  │ │
+│                           │  │ ┌───────┐ │  │ │
+│                           │  │ │Mutilli│ │  │ │
+│                           │  │ │dae:8082│ │  │ │
+│                           │  │ └───────┘ │  │ │
 │                           │  └───────────┘  │ │
 │                           └─────────────────┘ │
 │                                               │
@@ -82,10 +93,15 @@ Set-Cookie: security=impossible; path=/; HttpOnly
 - Usare Docker per i target vulnerabili invece di intere VM dedicate riduce drasticamente i tempi di setup e il consumo di risorse, mantenendo comunque un ambiente di attacco realistico.
 
 ## 🔜 Prossimi passi
+- [x] Estensione del lab con bundle stile OWASP BWA (WebGoat + Mutillidae II accanto a DVWA)
 - [ ] Vulnerability assessment completo su DVWA (OWASP Top 10) → repository dedicato
+- [ ] Primi laboratori guidati su WebGoat (SQL injection, XSS, autenticazione)
 - [ ] Accensione della VM Windows 11 come target di scan/hardening
-- [ ] Installazione di un secondo target (es. Metasploitable in container) per scenari di network pentest più ampi
 - [ ] SIEM leggero (Wazuh) per raccogliere i log delle attività del lab
+
+## 💡 Cosa ho imparato (aggiornamento)
+- OWASP BWA originale è distribuita come immagine VM (OVA) compilata solo per x86, quindi non è utilizzabile direttamente su un host Apple Silicon: la soluzione più pratica è ricostruire lo stesso set di applicazioni vulnerabili come container Docker indipendenti, ottenendo lo stesso valore didattico senza i problemi di compatibilità.
+- Quando un'immagine Docker resta disponibile solo per `amd64` (come Mutillidae II) e non esiste un'alternativa arm64 nativa, installare `qemu-user-static` e `binfmt-support` permette a Docker di emulare l'architettura x86 trasparentemente — più lento della nativa ma pienamente funzionante per un lab didattico.
 
 ## 🔗 Collegamenti
 - [DVWA — repository ufficiale](https://github.com/digininja/DVWA)
