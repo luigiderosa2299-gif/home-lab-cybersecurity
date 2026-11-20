@@ -1,23 +1,23 @@
 # Home Lab — Cybersecurity Practice Environment
 
-## 📌 Obiettivo
-Ambiente di laboratorio personale per esercitarmi in modo pratico sui concetti studiati per la certificazione CompTIA Security+ (SY0-701): network scanning, vulnerability assessment, hardening e — in futuro — incident response e Active Directory security. Questo repository documenta l'infrastruttura del lab e serve da base per i progetti successivi del portfolio.
+## 📌 Objective
+A personal lab environment for hands-on practice of the concepts studied for the CompTIA Security+ (SY0-701) certification: network scanning, vulnerability assessment, hardening and — in the future — incident response and Active Directory security. This repository documents the lab infrastructure and serves as the foundation for the later projects in the portfolio.
 
-## 🧩 Contesto / Scenario
-Lab virtualizzato su un singolo host macOS (Apple Silicon), con macchine virtuali gestite tramite UTM (QEMU) in bridge sulla rete locale. L'obiettivo è avere un ambiente isolato ma realistico dove poter attaccare/scansionare macchine vulnerabili senza rischi per sistemi reali.
+## 🧩 Context / Scenario
+Virtualized lab on a single macOS host (Apple Silicon), with virtual machines managed through UTM (QEMU) bridged onto the local network. The goal is an isolated but realistic environment where I can attack/scan vulnerable machines without risk to real systems.
 
-## 🛠 Tecnologie e Strumenti
+## 🛠 Technologies and Tools
 - **Hypervisor**: UTM (QEMU/HVF) su macOS Apple Silicon (arm64)
-- **Attack machine**: Kali Linux Rolling (arm64), accesso SSH con autenticazione a chiave
-- **Target vulnerabili** (set ispirato a OWASP Broken Web Applications — OWASP BWA):
-  - [DVWA](https://github.com/digininja/DVWA) (Damn Vulnerable Web Application) — porta 8080
-  - [WebGoat](https://owasp.org/www-project-webgoat/) — piattaforma didattica OWASP con lezioni guidate passo-passo — porta 8081
-  - [Mutillidae II](https://github.com/webpwnized/mutillidae) — copertura quasi completa OWASP Top 10, livelli di difficoltà regolabili — porta 8082
-- **Networking**: bridge su interfaccia fisica (vmnet-bridged), IP assegnati via DHCP sulla LAN domestica
-- **Tool di analisi**: Nmap, cURL
-- **Container runtime**: Docker (`docker.io` da repository Kali) + `qemu-user-static`/`binfmt-support` per emulare immagini amd64 su host arm64
+- **Attack machine**: Kali Linux Rolling (arm64), SSH access with key-based authentication
+- **Vulnerable targets** (set inspired by OWASP Broken Web Applications — OWASP BWA):
+  - [DVWA](https://github.com/digininja/DVWA) (Damn Vulnerable Web Application) — port 8080
+  - [WebGoat](https://owasp.org/www-project-webgoat/) — OWASP training platform with step-by-step guided lessons — port 8081
+  - [Mutillidae II](https://github.com/webpwnized/mutillidae) — near-complete OWASP Top 10 coverage, adjustable difficulty levels — port 8082
+- **Networking**: bridge on the physical interface (vmnet-bridged), IPs assigned via DHCP on the home LAN
+- **Analysis tools**: Nmap, cURL
+- **Container runtime**: Docker (`docker.io` from the Kali repository) + `qemu-user-static`/`binfmt-support` to emulate amd64 images on an arm64 host
 
-## 🏗 Architettura del Lab
+## 🏗 Lab Architecture
 
 ```
 ┌─────────────────────────────────────────────┐
@@ -46,25 +46,25 @@ Lab virtualizzato su un singolo host macOS (Apple Silicon), con macchine virtual
 │                           └─────────────────┘ │
 │                                               │
 │  ┌─────────────────┐                          │
-│  │  Windows 11 VM   │  (target futuro:         │
-│  │  (spenta finché  │   scan, hardening,       │
-│  │   non serve)     │   AD lab)                │
+│  │  Windows 11 VM   │  (future target:         │
+│  │  (powered off    │   scan, hardening,       │
+│  │   until needed)  │   AD lab)                │
 │  └─────────────────┘                          │
 └─────────────────────────────────────────────┘
 ```
 
-## ⚙️ Cosa ho fatto
+## ⚙️ What I Did
 
-1. **Provisioning VM Kali Linux** su UTM con rete in modalità bridge (`vmnet-bridged`), per ottenere un IP reale sulla LAN e poter simulare traffico realistico tra macchine.
-2. **Accesso SSH con chiave pubblica** configurato (niente autenticazione a password), con `sudo` senza password per l'utente di lab — pratica comune in ambienti di test isolati, da NON replicare mai su sistemi in produzione.
-3. **Installazione Docker** (`apt-get install docker.io`) su Kali per poter orchestrare target vulnerabili in modo leggero, senza dover creare una VM dedicata per ogni scenario.
-4. **Deploy di DVWA** come container Docker (`ghcr.io/digininja/dvwa:latest`), esposto sulla porta 8080. Ho dovuto risolvere un problema di compatibilità architetturale: la prima immagine testata (`vulnerables/web-dvwa`) era compilata solo per `linux/amd64` e falliva con `exec format error` sulla VM Kali arm64 — ho sostituito con l'immagine ufficiale DVWA multi-architettura.
-5. **Verifica raggiungibilità** del target sia in locale (`127.0.0.1:8080` dentro la VM) sia dalla rete (`192.168.1.95:8080` dal Mac host), confermando che il container è correttamente esposto.
-6. **Primo scan di rete con Nmap** dalla VM Kali verso se stessa, per validare i servizi esposti.
+1. **Provisioned the Kali Linux VM** on UTM with bridged networking (`vmnet-bridged`), to get a real IP on the LAN and be able to simulate realistic traffic between machines.
+2. **Configured SSH access with a public key** (no password authentication), with passwordless `sudo` for the lab user — a common practice in isolated test environments, to be NEVER replicated on production systems.
+3. **Installed Docker** (`apt-get install docker.io`) on Kali to orchestrate vulnerable targets in a lightweight way, without having to create a dedicated VM for each scenario.
+4. **Deployed DVWA** as a Docker container (`ghcr.io/digininja/dvwa:latest`), exposed on port 8080. I had to solve an architecture compatibility problem: the first image I tested (`vulnerables/web-dvwa`) was built only for `linux/amd64` and failed with `exec format error` on the arm64 Kali VM — I replaced it with the official multi-architecture DVWA image.
+5. **Verified reachability** of the target both locally (`127.0.0.1:8080` inside the VM) and from the network (`192.168.1.95:8080` from the Mac host), confirming the container is correctly exposed.
+6. **First network scan with Nmap** from the Kali VM against itself, to validate the exposed services.
 
-## 📊 Risultati
+## 📊 Results
 
-Scan Nmap (TCP connect + service detection) eseguito dalla VM Kali:
+Nmap scan (TCP connect + service detection) run from the Kali VM:
 
 ```
 $ nmap -sT -sV -p 8080,22 192.168.1.95
@@ -75,7 +75,7 @@ PORT     STATE SERVICE VERSION
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
 
-Verifica applicativa (risposta HTTP di DVWA):
+Application check (DVWA HTTP response):
 
 ```
 $ curl -sI http://192.168.1.95:8080/setup.php
@@ -85,24 +85,18 @@ X-Powered-By: PHP/8.5.10
 Set-Cookie: security=impossible; path=/; HttpOnly
 ```
 
-**Nota interessante**: un primo scan con `nmap -Pn -sV` (SYN scan di default) segnalava la porta 8080 come `filtered`, mentre il servizio era in realtà pienamente raggiungibile via HTTP. Passando a `-sT` (TCP connect scan) il risultato è coerente (`open`). Questo è un promemoria pratico di quanto studiato nel modulo Vulnerability Scanning del corso Security+: tecniche di scan diverse possono dare risultati diversi sullo stesso target, ed è importante capire il perché prima di trarre conclusioni su un servizio.
+**Interesting note**: a first scan with `nmap -Pn -sV` (default SYN scan) reported port 8080 as `filtered`, while the service was in fact fully reachable via HTTP. Switching to `-sT` (TCP connect scan) gave a consistent result (`open`). This is a practical reminder of what I studied in the Vulnerability Scanning module of the Security+ course: different scan techniques can give different results on the same target, and it is important to understand why before drawing conclusions about a service.
 
-## 💡 Cosa ho imparato
-- Le immagini Docker non sono automaticamente portabili tra architetture: su hardware ARM (Apple Silicon) serve verificare la compatibilità `arm64`/`amd64` prima di scegliere un'immagine, o si rischia un fallimento silenzioso (`exec format error`).
-- La differenza pratica tra SYN scan e TCP connect scan di Nmap non è solo teorica: in ambienti containerizzati/NAT può produrre risultati diversi (`filtered` vs `open`) sullo stesso servizio realmente attivo, e capire la causa è più importante del semplice numero di porte aperte.
-- Usare Docker per i target vulnerabili invece di intere VM dedicate riduce drasticamente i tempi di setup e il consumo di risorse, mantenendo comunque un ambiente di attacco realistico.
+## 💡 What I Learned
+- Docker images are not automatically portable across architectures: on ARM hardware (Apple Silicon) you need to check `arm64`/`amd64` compatibility before choosing an image, or you risk a silent failure (`exec format error`).
+- The practical difference between an Nmap SYN scan and a TCP connect scan is not just theoretical: in containerized/NAT environments it can produce different results (`filtered` vs `open`) on the same genuinely running service, and understanding the cause matters more than the raw number of open ports.
+- Using Docker for the vulnerable targets instead of entire dedicated VMs drastically reduces setup time and resource consumption, while still keeping a realistic attack environment.
 
-## 🔜 Prossimi passi
-- [x] Estensione del lab con bundle stile OWASP BWA (WebGoat + Mutillidae II accanto a DVWA)
-- [ ] Vulnerability assessment completo su DVWA (OWASP Top 10) → repository dedicato
-- [ ] Primi laboratori guidati su WebGoat (SQL injection, XSS, autenticazione)
-- [ ] Accensione della VM Windows 11 come target di scan/hardening
-- [ ] SIEM leggero (Wazuh) per raccogliere i log delle attività del lab
 
-## 💡 Cosa ho imparato (aggiornamento)
-- OWASP BWA originale è distribuita come immagine VM (OVA) compilata solo per x86, quindi non è utilizzabile direttamente su un host Apple Silicon: la soluzione più pratica è ricostruire lo stesso set di applicazioni vulnerabili come container Docker indipendenti, ottenendo lo stesso valore didattico senza i problemi di compatibilità.
-- Quando un'immagine Docker resta disponibile solo per `amd64` (come Mutillidae II) e non esiste un'alternativa arm64 nativa, installare `qemu-user-static` e `binfmt-support` permette a Docker di emulare l'architettura x86 trasparentemente — più lento della nativa ma pienamente funzionante per un lab didattico.
+## 💡 What I Learned (update)
+- The original OWASP BWA is distributed as a VM image (OVA) built only for x86, so it cannot be used directly on an Apple Silicon host: the most practical solution is to rebuild the same set of vulnerable applications as independent Docker containers, getting the same learning value without the compatibility problems.
+- When a Docker image is only available for `amd64` (like Mutillidae II) and there is no native arm64 alternative, installing `qemu-user-static` and `binfmt-support` lets Docker emulate the x86 architecture transparently — slower than native but fully functional for a learning lab.
 
-## 🔗 Collegamenti
-- [DVWA — repository ufficiale](https://github.com/digininja/DVWA)
-- Percorso di studio CompTIA Security+ (SY0-701) in corso, materiale in vault Obsidian personale
+## 🔗 Links
+- [DVWA — official repository](https://github.com/digininja/DVWA)
+- CompTIA Security+ (SY0-701) study path in progress, material kept in my personal Obsidian vault

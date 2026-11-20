@@ -1,6 +1,6 @@
-# Evidenze raccolte — Home Lab Setup
+# Evidence Collected — Home Lab Setup
 
-## Scan 1 — Nmap SYN scan (default), risultato iniziale ambiguo
+## Scan 1 — Nmap SYN scan (default), initially ambiguous result
 
 ```
 $ nmap -sV -Pn 192.168.1.95 -p 8080,22
@@ -11,7 +11,7 @@ PORT     STATE    SERVICE    VERSION
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
 
-## Scan 2 — Nmap TCP connect scan, conferma servizio attivo
+## Scan 2 — Nmap TCP connect scan, confirms the service is active
 
 ```
 $ nmap -sT -sV -p 8080,22 192.168.1.95
@@ -22,7 +22,7 @@ PORT     STATE SERVICE VERSION
 Service Info: OS: Linux; CPE: cpe:/o:linux:linux_kernel
 ```
 
-## Verifica applicativa DVWA (locale, dentro la VM Kali)
+## DVWA application check (local, inside the Kali VM)
 
 ```
 $ curl -sI http://127.0.0.1:8080/setup.php
@@ -34,7 +34,7 @@ Set-Cookie: security=impossible; path=/; HttpOnly
 Content-Type: text/html;charset=utf-8
 ```
 
-## Verifica applicativa DVWA (dalla rete, dal Mac host)
+## DVWA application check (from the network, from the Mac host)
 
 ```
 $ curl -sI http://192.168.1.95:8080/setup.php
@@ -46,7 +46,7 @@ Set-Cookie: security=impossible; path=/; HttpOnly
 Content-Type: text/html;charset=utf-8
 ```
 
-## Stato host Kali al momento del setup
+## Kali host state at setup time
 
 ```
 $ hostnamectl
